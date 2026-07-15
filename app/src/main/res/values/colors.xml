@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <!-- Primary Colors -->
+    <color name="primary">#0D47A1</color>
+    <color name="primary_dark">#08306B</color>
+    <color name="primary_light">#42A5F5</color>
+
+    <!-- Background -->
+    <color name="background">#F5F7FA</color>
+
+    <!-- Basic -->
+    <color name="white">#FFFFFF</color>
+    <color name="black">#212121</color>
+
+    <!-- Status -->
+    <color name="success">#4CAF50</color>
+    <color name="warning">#FB8C00</color>
+    <color name="danger">#E53935</color>
+
+    <!-- Grey -->
+    <color name="grey">#9E9E9E</color>
+    <color name="light_grey">#E0E0E0</color>
+
+</resources>
