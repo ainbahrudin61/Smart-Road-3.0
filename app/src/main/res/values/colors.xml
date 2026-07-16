@@ -1,25 +1,28 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <!-- Primary Colors -->
-    <color name="primary">#0D47A1</color>
-    <color name="primary_dark">#08306B</color>
-    <color name="primary_light">#42A5F5</color>
+    <!-- UI Backgrounds (Modern Dark Theme) -->
+    <color name="ui_background">#111827</color>
+    <color name="card_background">#1E293B</color>
 
-    <!-- Background -->
-    <color name="background">#F5F7FA</color>
+    <!-- Primary Colors (Light Blue for High Contrast on Dark) -->
+    <color name="primary">#42A5F5</color>
+    <color name="primary_dark">#0D47A1</color>
+    <color name="primary_light">#90CAF9</color>
 
-    <!-- Basic -->
-    <color name="white">#FFFFFF</color>
-    <color name="black">#212121</color>
-
-    <!-- Status -->
+    <!-- Semantic Colors -->
     <color name="success">#4CAF50</color>
     <color name="warning">#FB8C00</color>
     <color name="danger">#E53935</color>
 
-    <!-- Grey -->
-    <color name="grey">#9E9E9E</color>
-    <color name="light_grey">#E0E0E0</color>
+    <!-- Basic -->
+    <color name="white">#FFFFFF</color>
+    <color name="black">#000000</color>
+
+    <!-- Text and UI Accents -->
+    <color name="text_primary">#FFFFFF</color>
+    <color name="text_secondary">#9CA3AF</color>
+    <color name="text_tertiary">#D1D5DB</color>
+    <color name="divider">#334155</color>
 
 </resources>
