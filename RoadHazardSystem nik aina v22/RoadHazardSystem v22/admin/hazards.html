@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#101a3d">
+    <title>Hazard Reports | SmartRoad</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
+    <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+    <div class="app-shell">
+        <aside class="sidebar">
+            <a class="brand" href="dashboard.html" aria-label="SmartRoad dashboard"><span class="brand-mark"><i class="fa-solid fa-road"></i></span><span><strong>smartroad</strong><small>ADMIN CONSOLE</small></span></a>
+            <p class="sidebar-label">Workspace</p>
+            <nav class="sidebar-nav" aria-label="Primary navigation">
+                <a href="dashboard.html"><i class="fa-solid fa-grid-2"></i><span>Overview</span></a>
+                <a href="hazards.html" class="active"><i class="fa-solid fa-triangle-exclamation"></i><span>Hazard reports</span></a>
+            </nav>
+            <div class="sidebar-bottom"><div class="admin-chip"><span class="admin-avatar">A</span><span><strong>Administrator</strong><small>System control</small></span><i class="fa-solid fa-circle-check"></i></div><button id="logoutBtn" class="logout-button"><i class="fa-solid fa-arrow-right-from-bracket"></i> Sign out</button></div>
+        </aside>
+
+        <main class="main-content">
+            <header class="topbar"><div class="breadcrumb"><i class="fa-solid fa-house"></i><span>Command centre</span><i class="fa-solid fa-chevron-right"></i><strong>Hazard reports</strong></div><div class="live-indicator"><span></span> Live system status</div></header>
+            <section class="page-hero">
+                <div><p class="eyebrow"><i class="fa-solid fa-radar"></i> INCIDENT MANAGEMENT</p><h1>Hazard reports</h1><p>See every signal from the road, find what needs attention, and act with confidence.</p></div>
+                <a href="addHazard.html" class="primary-button"><i class="fa-solid fa-plus"></i> Add report</a>
+            </section>
+
+            <section class="filter-section" aria-label="Filter hazard reports">
+                <div class="filter-heading"><span class="filter-icon"><i class="fa-solid fa-sliders"></i></span><div><strong>Find a report</strong><small>Refine your live incident list</small></div></div>
+                <div class="filter-controls">
+                    <label class="search-field"><i class="fa-solid fa-magnifying-glass"></i><input type="text" id="searchInput" placeholder="Search user or location"></label>
+                    <label class="select-field"><span>Type</span><select id="hazardTypeFilter"><option value="">All hazard types</option><option value="Pothole">Pothole</option><option value="Flood">Flood</option><option value="Road Crack">Road Crack</option><option value="Damaged Traffic Light">Damaged Traffic Light</option><option value="Fallen Tree">Fallen Tree</option><option value="Traffic Accident">Traffic Accident</option><option value="Damaged Road Sign">Damaged Road Sign</option></select></label>
+                    <label class="select-field"><span>Status</span><select id="statusFilter"><option value="">All statuses</option><option value="New">New</option><option value="Under Investigation">Under Investigation</option><option value="Repair">Repair</option><option value="Resolved">Resolved</option></select></label>
+                    <label class="date-field"><i class="fa-regular fa-calendar"></i><input type="date" id="dateFilter" aria-label="Filter by date"></label>
+                    <button id="resetBtn" type="button"><i class="fa-solid fa-rotate-left"></i><span>Reset</span></button>
+                </div>
+            </section>
+
+            <section class="data-card report-table-card">
+                <div class="table-header"><div><p class="section-kicker">INCIDENT REGISTER</p><h2>All submitted reports</h2></div><span class="records-note"><i class="fa-solid fa-circle"></i> Updating in real time</span></div>
+                <div class="table-scroll"><table class="data-table"><thead><tr><th>ID</th><th>Evidence</th><th>Reported by</th><th>Hazard type</th><th>Details</th><th>Location</th><th>Date</th><th>Time</th><th>Progress</th><th>Actions</th></tr></thead><tbody id="hazardTableBody"></tbody></table></div>
+            </section>
+        </main>
+    </div>
+    <script type="module" src="../js/hazard.js"></script>
+</body>
+</html>

@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#101a3d">
+    <title>Hazard Details | SmartRoad</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
+    <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+    <div class="app-shell">
+        <aside class="sidebar">
+            <a class="brand" href="dashboard.html" aria-label="SmartRoad dashboard"><span class="brand-mark"><i class="fa-solid fa-road"></i></span><span><strong>smartroad</strong><small>ADMIN CONSOLE</small></span></a>
+            <p class="sidebar-label">Workspace</p>
+            <nav class="sidebar-nav" aria-label="Primary navigation"><a href="dashboard.html"><i class="fa-solid fa-grid-2"></i><span>Overview</span></a><a href="hazards.html" class="active"><i class="fa-solid fa-triangle-exclamation"></i><span>Hazard reports</span></a></nav>
+            <div class="sidebar-bottom"><div class="admin-chip"><span class="admin-avatar">A</span><span><strong>Administrator</strong><small>System control</small></span><i class="fa-solid fa-circle-check"></i></div><button id="logoutBtn" class="logout-button"><i class="fa-solid fa-arrow-right-from-bracket"></i> Sign out</button></div>
+        </aside>
+
+        <main class="main-content">
+            <header class="topbar"><div class="breadcrumb"><i class="fa-solid fa-house"></i><span>Hazard reports</span><i class="fa-solid fa-chevron-right"></i><strong>Report details</strong></div><div class="live-indicator"><span></span> Live report data</div></header>
+            <section class="page-hero detail-hero"><div><p class="eyebrow"><i class="fa-solid fa-file-shield"></i> INCIDENT RECORD</p><h1>Hazard details</h1><p>A clear, complete view of this report and the information behind it.</p></div><a href="hazards.html" class="secondary-button"><i class="fa-solid fa-arrow-left"></i> Back to reports</a></section>
+
+            <section class="detail-card">
+                <div class="image-section"><div class="evidence-label"><i class="fa-solid fa-camera"></i> PHOTO EVIDENCE</div><img id="hazardPhoto" src="" alt="Hazard evidence"><div class="image-caption"><i class="fa-solid fa-shield-heart"></i><span>Evidence attached to this report</span></div></div>
+                <div class="detail-section"><div class="detail-heading"><div><p class="section-kicker">REPORT SNAPSHOT</p><h2>Incident information</h2></div><span id="statusBadge"></span></div>
+                    <table class="detail-table"><tbody>
+                        <tr><th><i class="fa-solid fa-hashtag"></i> Report ID</th><td id="hazardId"></td></tr>
+                        <tr><th><i class="fa-solid fa-user"></i> Reported by</th><td id="username"></td></tr>
+                        <tr><th><i class="fa-solid fa-triangle-exclamation"></i> Hazard type</th><td id="hazardType"></td></tr>
+                        <tr class="description-row"><th><i class="fa-solid fa-align-left"></i> Description</th><td id="description"></td></tr>
+                        <tr><th><i class="fa-solid fa-location-dot"></i> Location</th><td id="location"></td></tr>
+                        <tr><th><i class="fa-solid fa-location-crosshairs"></i> Coordinates</th><td><span id="latitude"></span><span class="coordinate-divider">,</span><span id="longitude"></span></td></tr>
+                        <tr><th><i class="fa-regular fa-calendar"></i> Report date</th><td id="date"></td></tr>
+                        <tr><th><i class="fa-regular fa-clock"></i> Report time</th><td id="time"></td></tr>
+                        <tr><th><i class="fa-solid fa-mobile-screen-button"></i> Submitted from</th><td id="userAgent"></td></tr>
+                    </tbody></table>
+                </div>
+            </section>
+        </main>
+    </div>
+    <script type="module" src="../js/viewHazard.js"></script>
+</body>
+</html>
