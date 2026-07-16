@@ -19,8 +19,7 @@
     <!-- Profile Page -->
     <string name="profile_picture">Profile Picture</string>
     <string name="profile_my_reports">MY REPORTS</string>
-    <string name="profile_pending">Pending</string>
-    <string name="profile_verified">Verified</string>
+    <string name="profile_under_investigation">Under Investigation</string>
     <string name="profile_resolved">Resolved</string>
     <string name="profile_account_settings">ACCOUNT SETTINGS</string>
     <string name="profile_edit_btn">Edit Profile</string>
@@ -66,5 +65,14 @@
     <string name="register_subtitle">Join SmartRoad to start reporting</string>
     <string name="register_name_hint">Full Name</string>
     <string name="register_email_hint">Email Address</string>
+    <string name="register_confirm_password_hint">Confirm Password</string>
     <string name="register_btn">REGISTER</string>
     <string name="register_login_prompt">Already have an account? Login</string>
+
+    <!-- Navigation Labels -->
+    <string name="nav_home">Home</string>
+    <string name="nav_report">Report</string>
+    <string name="nav_map">Map</string>
+    <string name="nav_profile">Profile</string>
+    <string name="nav_about">About</string>
+</resources>

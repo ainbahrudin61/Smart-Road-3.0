@@ -1,5 +1,6 @@
 package com.example.smartroad;
 
+import android.content.Intent;
 import android.os.Bundle;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -11,12 +12,14 @@ import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.material.bottomnavigation.BottomNavigationView;
 
 public class MapActivity extends AppCompatActivity
         implements OnMapReadyCallback {
 
 
     GoogleMap mMap;
+    BottomNavigationView bottomNavigationView;
 
 
     @Override
@@ -25,6 +28,10 @@ public class MapActivity extends AppCompatActivity
         super.onCreate(savedInstanceState);
 
         setContentView(R.layout.activity_map);
+
+        bottomNavigationView = findViewById(R.id.bottom_navigation);
+
+        NavigationUtils.setupBottomNavigation(this, bottomNavigationView, R.id.nav_map);
 
 
         SupportMapFragment mapFragment =

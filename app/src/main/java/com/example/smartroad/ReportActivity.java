@@ -4,6 +4,7 @@ import static androidx.core.location.LocationManagerCompat.getCurrentLocation;
 
 import android.Manifest;
 
+import android.content.Intent;
 import android.content.pm.PackageManager;
 
 import androidx.core.app.ActivityCompat;
@@ -11,6 +12,7 @@ import androidx.core.app.ActivityCompat;
 import com.google.android.gms.location.FusedLocationProviderClient;
 
 import com.google.android.gms.location.LocationServices;
+import com.google.android.material.bottomnavigation.BottomNavigationView;
 
 import android.location.Location;
 
@@ -51,7 +53,7 @@ public class ReportActivity extends AppCompatActivity {
 
     TextView txtAddress, txtLatitude, txtLongitude, txtDate, txtTime;
 
-
+    BottomNavigationView bottomNavigationView;
 
     boolean imageUploaded=false;
 
@@ -64,6 +66,10 @@ public class ReportActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_report);
+
+        bottomNavigationView = findViewById(R.id.bottom_navigation);
+
+        NavigationUtils.setupBottomNavigation(this, bottomNavigationView, R.id.nav_report);
 
 
         //CONNECT XML
