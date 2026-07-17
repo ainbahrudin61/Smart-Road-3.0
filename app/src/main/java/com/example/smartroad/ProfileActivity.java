@@ -70,12 +70,8 @@ public class ProfileActivity extends AppCompatActivity {
 
         //DISPLAY DATA
 
-        SharedPreferences sharedPreferences = getSharedPreferences("SmartRoadPrefs", MODE_PRIVATE);
-        String name = sharedPreferences.getString("name", "SmartRoad User");
-        String email = sharedPreferences.getString("email", "smartroad@gmail.com");
-
-        txtName.setText(name);
-        txtEmail.setText(email);
+        // Fetch User Info from Firebase Realtime Database
+        fetchUserInfo();
 
         // Fetch My Reports stats from Firebase
         fetchReportStats();
@@ -118,6 +114,39 @@ public class ProfileActivity extends AppCompatActivity {
             });
 
             builder.show();
+        });
+    }
+
+    private void fetchUserInfo() {
+        if (mAuth.getCurrentUser() == null) return;
+        String userId = mAuth.getCurrentUser().getUid();
+
+        mDatabase.child("users").child(userId).addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                User user = snapshot.getValue(User.class);
+                if (user != null) {
+                    txtName.setText(user.name);
+                    txtEmail.setText(user.email);
+
+                    // Update local SharedPreferences as backup
+                    SharedPreferences sharedPreferences = getSharedPreferences("SmartRoadPrefs", MODE_PRIVATE);
+                    SharedPreferences.Editor editor = sharedPreferences.edit();
+                    editor.putString("name", user.name);
+                    editor.putString("email", user.email);
+                    editor.apply();
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+                // Fallback to SharedPreferences if database fails
+                SharedPreferences sharedPreferences = getSharedPreferences("SmartRoadPrefs", MODE_PRIVATE);
+                String name = sharedPreferences.getString("name", "SmartRoad User");
+                String email = sharedPreferences.getString("email", "smartroad@gmail.com");
+                txtName.setText(name);
+                txtEmail.setText(email);
+            }
         });
     }
 
