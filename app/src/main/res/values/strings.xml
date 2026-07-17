@@ -11,6 +11,17 @@
     <string name="about_features_desc">• Real-time Hazard Reporting\n• Precise GPS Location Tracking\n• Visual Report Status Monitoring\n• Secure User Profile Management</string>
     <string name="about_dev_title">DEVELOPED BY</string>
     <string name="about_dev_desc">SmartRoad Team\nFaculty of Computer and Mathematical Sciences\nUniversiti Teknologi MARA</string>
+    <string name="about_dev_team_title">Development Team</string>
+    <string name="dev1_name">NUR\'AIN BINTI BAHRUDIN</string>
+    <string name="dev1_matric">Matric: 2025160917</string>
+    <string name="dev2_name">NIK AINA NASHUHA BINTI CHE HASSAN</string>
+    <string name="dev2_matric">Matric: 2023657198</string>
+    <string name="dev3_name">SITI NUR AQILAH BINTI SHAMRI</string>
+    <string name="dev3_matric">Matric: 2024788771</string>
+    <string name="dev4_name">MUHAMMAD IDHAM BIN MOHD YUSOF</string>
+    <string name="dev4_matric">Matric: 2023405928</string>
+    <string name="dev_course">Mobile Technology and Development</string>
+    <string name="about_github_btn">View on GitHub</string>
     <string name="about_contact_btn">Contact Us</string>
     <string name="about_email_default">smartroad@gmail.com</string>
     <string name="about_email">smartroad@gmail.com</string>

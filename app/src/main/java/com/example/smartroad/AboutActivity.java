@@ -1,6 +1,7 @@
 package com.example.smartroad;
 
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.widget.Button;
 import android.widget.Toast;
@@ -13,7 +14,7 @@ import com.google.android.material.bottomnavigation.BottomNavigationView;
 public class AboutActivity extends AppCompatActivity {
 
 
-    Button btnContact;
+    Button btnGithub;
     BottomNavigationView bottomNavigationView;
 
 
@@ -29,21 +30,15 @@ public class AboutActivity extends AppCompatActivity {
 
 
 
-        btnContact=findViewById(R.id.btnContact);
+        btnGithub = findViewById(R.id.btnGithub);
 
 
 
-        btnContact.setOnClickListener(v -> {
-
-            Toast.makeText(
-
-                    this,
-
-                    "Contact SmartRoad Team",
-
-                    Toast.LENGTH_SHORT).show();
-
-
+        btnGithub.setOnClickListener(v -> {
+            // Replace with your actual GitHub URL
+            String githubUrl = "https://github.com/ainbahrudin61/Smart-Road-3.0";
+            Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(githubUrl));
+            startActivity(intent);
         });
 
 

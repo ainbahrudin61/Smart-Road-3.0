@@ -24,5 +24,6 @@
     <color name="text_secondary">#9CA3AF</color>
     <color name="text_tertiary">#D1D5DB</color>
     <color name="divider">#334155</color>
+    <color name="team_primary">#D97706</color>
 
 </resources>
