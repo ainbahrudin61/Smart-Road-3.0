@@ -9,6 +9,8 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.google.android.gms.location.FusedLocationProviderClient;
+import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
@@ -24,14 +26,21 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
+import android.Manifest;
+import android.content.pm.PackageManager;
+import androidx.core.app.ActivityCompat;
+import java.util.Locale;
+import android.location.Location;
+
 public class HomeActivity extends AppCompatActivity implements OnMapReadyCallback {
 
     Button btnGPS;
-    TextView txtGreeting;
+    TextView txtGreeting, txtLat, txtLong;
     BottomNavigationView bottomNavigationView;
     private GoogleMap mMap;
     private DatabaseReference mDatabase;
     private FirebaseAuth mAuth;
+    private FusedLocationProviderClient fusedLocationClient;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -43,7 +52,11 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         btnGPS = findViewById(R.id.btnGPS);
         txtGreeting = findViewById(R.id.txtGreeting);
+        txtLat = findViewById(R.id.txtLat);
+        txtLong = findViewById(R.id.txtLong);
         bottomNavigationView = findViewById(R.id.bottom_navigation);
+
+        fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
 
         NavigationUtils.setupBottomNavigation(this, bottomNavigationView, R.id.nav_home);
 
@@ -58,9 +71,33 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
         }
 
         btnGPS.setOnClickListener(v -> {
-            Toast.makeText(this, "Updating Location...", Toast.LENGTH_SHORT).show();
+            getCurrentLocation();
         });
 
+    }
+
+    private void getCurrentLocation() {
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, 100);
+            return;
+        }
+
+        Toast.makeText(this, "Updating Location...", Toast.LENGTH_SHORT).show();
+        fusedLocationClient.getLastLocation().addOnSuccessListener(this, location -> {
+            if (location != null) {
+                double lat = location.getLatitude();
+                double lon = location.getLongitude();
+                txtLat.setText("Latitude : " + String.format(Locale.US, "%.5f", lat));
+                txtLong.setText("Longitude : " + String.format(Locale.US, "%.5f", lon));
+
+                if (mMap != null) {
+                    LatLng currentLatLng = new LatLng(lat, lon);
+                    mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(currentLatLng, 15));
+                }
+            } else {
+                Toast.makeText(this, "Unable to get location. Please enable GPS.", Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 
     private void fetchUserName() {
@@ -82,6 +119,11 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
     @Override
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
+        
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+            mMap.setMyLocationEnabled(true);
+        }
+
         loadHazards();
         
         // Default location (Johor Bahru)

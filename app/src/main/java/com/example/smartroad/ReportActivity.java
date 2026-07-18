@@ -153,13 +153,6 @@ public class ReportActivity extends AppCompatActivity {
 
             getCurrentLocation();
 
-
-            Toast.makeText(
-                    this,
-                    "GPS Retrieved",
-                    Toast.LENGTH_SHORT).show();
-
-
         });
 
 
@@ -359,15 +352,19 @@ public class ReportActivity extends AppCompatActivity {
 
                                 this,
 
-                                "Location Retrieved",
+                                "GPS Retrieved",
 
                                 Toast.LENGTH_SHORT).show();
 
 
 
+                    } else {
+                        Toast.makeText(this, "Unable to get GPS. Please ensure GPS is on.", Toast.LENGTH_SHORT).show();
                     }
 
 
+                }).addOnFailureListener(e -> {
+                    Toast.makeText(this, "Location Error: " + e.getMessage(), Toast.LENGTH_SHORT).show();
                 });
 
 
