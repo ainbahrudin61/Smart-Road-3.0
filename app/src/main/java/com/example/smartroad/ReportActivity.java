@@ -388,7 +388,7 @@ public class ReportActivity extends AppCompatActivity {
         String time = txtTime.getText().toString().replace("Time : ", "");
 
         Report report = new Report(reportId, userId, description, hazardType, 
-                                   latitude, longitude, address, date, time, "Pending Verification");
+                                   latitude, longitude, address, date, time, "New");
 
         if (reportId != null) {
             // Save under global reports for home map and under user's reports for profile
@@ -419,9 +419,9 @@ public class ReportActivity extends AppCompatActivity {
 
                 "Report Submitted Successfully.\n\n" +
 
-                        "Status : Pending Verification\n\n" +
+                        "Status : New\n\n" +
 
-                        "Your report will be verified by the administrator before being displayed on the map."
+                        "The administrator will review and update the status of your report."
 
         );
 
