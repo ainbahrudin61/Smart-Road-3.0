@@ -16,6 +16,9 @@ import com.google.android.material.bottomnavigation.BottomNavigationView;
 
 import android.location.Location;
 
+import android.net.Uri;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -31,6 +34,10 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
 
+
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
 
 import android.location.Address;
 
@@ -61,11 +68,29 @@ public class ReportActivity extends AppCompatActivity {
 
     FusedLocationProviderClient fusedLocation;
 
+    private ActivityResultLauncher<String> mGetContent;
+
+    private DatabaseReference mDatabase;
+    private FirebaseAuth mAuth;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_report);
+
+        mAuth = FirebaseAuth.getInstance();
+        mDatabase = FirebaseDatabase.getInstance().getReference();
+
+        // Initialize ActivityResultLauncher
+        mGetContent = registerForActivityResult(new ActivityResultContracts.GetContent(),
+                uri -> {
+                    if (uri != null) {
+                        imgReport.setImageURI(uri);
+                        imageUploaded = true;
+                        Toast.makeText(this, "Image Selected", Toast.LENGTH_SHORT).show();
+                    }
+                });
 
         bottomNavigationView = findViewById(R.id.bottom_navigation);
 
@@ -118,14 +143,7 @@ public class ReportActivity extends AppCompatActivity {
         //IMAGE BUTTON
 
         btnImage.setOnClickListener(v -> {
-
-            imageUploaded = true;
-
-            Toast.makeText(
-                    this,
-                    "Image Selected",
-                    Toast.LENGTH_SHORT).show();
-
+            mGetContent.launch("image/*");
         });
 
 
@@ -210,7 +228,7 @@ public class ReportActivity extends AppCompatActivity {
 
             //SUCCESS
 
-            showSuccessDialog();
+            saveReportToFirebase(description);
 
 
         });
@@ -353,6 +371,39 @@ public class ReportActivity extends AppCompatActivity {
                 });
 
 
+    }
+
+
+    private void saveReportToFirebase(String description) {
+        if (mAuth.getCurrentUser() == null) return;
+
+        String userId = mAuth.getCurrentUser().getUid();
+        String reportId = mDatabase.child("reports").push().getKey();
+
+        int selectedId = radioHazard.getCheckedRadioButtonId();
+        android.widget.RadioButton radioButton = findViewById(selectedId);
+        String hazardType = radioButton.getText().toString();
+
+        double latitude = Double.parseDouble(txtLatitude.getText().toString().replace("Latitude : ", ""));
+        double longitude = Double.parseDouble(txtLongitude.getText().toString().replace("Longitude : ", ""));
+        String address = txtAddress.getText().toString().replace("Current Location : \n\n", "");
+        String date = txtDate.getText().toString().replace("Date : ", "");
+        String time = txtTime.getText().toString().replace("Time : ", "");
+
+        Report report = new Report(reportId, userId, description, hazardType, 
+                                   latitude, longitude, address, date, time, "Pending Verification");
+
+        if (reportId != null) {
+            // Save under global reports for home map and under user's reports for profile
+            mDatabase.child("all_reports").child(reportId).setValue(report);
+            mDatabase.child("user_reports").child(userId).child(reportId).setValue(report)
+                .addOnSuccessListener(aVoid -> {
+                    showSuccessDialog();
+                })
+                .addOnFailureListener(e -> {
+                    Toast.makeText(this, "Failed to submit: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                });
+        }
     }
 
 

@@ -4,6 +4,8 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.widget.Button;
+import android.widget.EditText;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -79,7 +81,7 @@ public class ProfileActivity extends AppCompatActivity {
         //EDIT PROFILE
 
         btnEdit.setOnClickListener(v -> {
-            Toast.makeText(this, "Edit Profile", Toast.LENGTH_SHORT).show();
+            showEditProfileDialog();
         });
 
 
@@ -87,7 +89,17 @@ public class ProfileActivity extends AppCompatActivity {
         //CHANGE PASSWORD
 
         btnPassword.setOnClickListener(v -> {
-            Toast.makeText(this, "Change Password", Toast.LENGTH_SHORT).show();
+            String email = mAuth.getCurrentUser().getEmail();
+            if (email != null) {
+                mAuth.sendPasswordResetEmail(email)
+                        .addOnCompleteListener(task -> {
+                            if (task.isSuccessful()) {
+                                Toast.makeText(this, "Password reset email sent to " + email, Toast.LENGTH_LONG).show();
+                            } else {
+                                Toast.makeText(this, "Error: " + task.getException().getMessage(), Toast.LENGTH_SHORT).show();
+                            }
+                        });
+            }
         });
 
 
@@ -101,6 +113,7 @@ public class ProfileActivity extends AppCompatActivity {
 
             //YES BUTTON
             builder.setPositiveButton("YES", (dialog, which) -> {
+                mAuth.signOut();
                 Toast.makeText(this, "Logout Successful", Toast.LENGTH_SHORT).show();
                 Intent intent = new Intent(ProfileActivity.this, LoginActivity.class);
                 intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
@@ -115,6 +128,41 @@ public class ProfileActivity extends AppCompatActivity {
 
             builder.show();
         });
+    }
+
+    private void showEditProfileDialog() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("Edit Profile");
+
+        final EditText input = new EditText(this);
+        input.setText(txtName.getText().toString());
+        LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.MATCH_PARENT);
+        input.setLayoutParams(lp);
+        builder.setView(input);
+
+        builder.setPositiveButton("Update", (dialog, which) -> {
+            String newName = input.getText().toString().trim();
+            if (!newName.isEmpty()) {
+                updateProfile(newName);
+            }
+        });
+        builder.setNegativeButton("Cancel", (dialog, which) -> dialog.cancel());
+
+        builder.show();
+    }
+
+    private void updateProfile(String newName) {
+        if (mAuth.getCurrentUser() == null) return;
+        String userId = mAuth.getCurrentUser().getUid();
+
+        mDatabase.child("users").child(userId).child("name").setValue(newName)
+                .addOnSuccessListener(aVoid -> {
+                    txtName.setText(newName);
+                    Toast.makeText(ProfileActivity.this, "Profile Updated", Toast.LENGTH_SHORT).show();
+                })
+                .addOnFailureListener(e -> Toast.makeText(ProfileActivity.this, "Update Failed: " + e.getMessage(), Toast.LENGTH_SHORT).show());
     }
 
     private void fetchUserInfo() {
