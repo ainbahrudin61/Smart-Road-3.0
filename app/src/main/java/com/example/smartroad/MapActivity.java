@@ -100,7 +100,7 @@ public class MapActivity extends AppCompatActivity
         }
 
         mMap.setOnMarkerClickListener(this);
-        loadHazards();
+        getCurrentLocation();
 
         // Default location (Johor Bahru)
         LatLng johorBahru = new LatLng(1.492659, 103.741359);
@@ -108,80 +108,54 @@ public class MapActivity extends AppCompatActivity
     }
 
     private void loadHazards() {
+        mDatabase.child("all_reports").addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                if (mMap == null) return;
+                mMap.clear();
+                reportMap.clear();
+                nearbyHazards.clear();
 
-        mDatabase.child("Hazards")
-                .addValueEventListener(new ValueEventListener() {
+                for (DataSnapshot data : snapshot.getChildren()) {
+                    Report report = data.getValue(Report.class);
+                    if (report == null) continue;
 
-                    @Override
-                    public void onDataChange(@NonNull DataSnapshot snapshot) {
+                    float[] result = new float[1];
+                    Location.distanceBetween(
+                            userLat,
+                            userLng,
+                            report.latitude,
+                            report.longitude,
+                            result
+                    );
+                    float distanceMeter = result[0];
 
-                        if (mMap == null)
-                            return;
-
-                        mMap.clear();
-
-                        reportMap.clear();
-
-                        for (DataSnapshot data : snapshot.getChildren()) {
-
-                            Report report = data.getValue(Report.class);
-
-                            if (report != null) {
-
-                                LatLng pos =
-                                        new LatLng(
-                                                report.latitude,
-                                                report.longitude
-                                        );
-
-                                Marker marker =
-                                        mMap.addMarker(
-
-                                                new MarkerOptions()
-
-                                                        .position(pos)
-
-                                                        .title(report.hazardType)
-
-                                                        .snippet(report.description)
-
-                                                        .icon(
-                                                                BitmapDescriptorFactory
-                                                                        .defaultMarker(
-                                                                                BitmapDescriptorFactory.HUE_RED
-                                                                        )
-                                                        )
-
-                                        );
-
-                                if (marker != null) {
-
-                                    reportMap.put(
-                                            marker.getId(),
-                                            report
-                                    );
-
-                                }
-
-                            }
-
-                        }
-
+                    if (distanceMeter <= 5000) {
+                        nearbyHazards.add(new NearbyHazard(
+                                report.hazardType,
+                                String.format(getString(R.string.map_distance_format), distanceMeter)
+                        ));
                     }
 
-                    @Override
-                    public void onCancelled(@NonNull DatabaseError error) {
+                    LatLng pos = new LatLng(report.latitude, report.longitude);
+                    Marker marker = mMap.addMarker(new MarkerOptions()
+                            .position(pos)
+                            .title(report.hazardType)
+                            .snippet(report.description)
+                            .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED)));
 
-                        Toast.makeText(
-                                MapActivity.this,
-                                "Failed to load hazards.",
-                                Toast.LENGTH_SHORT
-                        ).show();
-
+                    if (marker != null) {
+                        reportMap.put(marker.getId(), report);
                     }
+                }
+                adapter.notifyDataSetChanged();
+            }
 
-                });
-
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+                Toast.makeText(MapActivity.this, getString(R.string.map_load_failed), Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 
     @Override
@@ -200,15 +174,8 @@ public class MapActivity extends AppCompatActivity
         StringBuilder details = new StringBuilder();
         details.append(getString(R.string.map_report_status, report.status)).append("\n");
         details.append(getString(R.string.map_report_description, report.description)).append("\n");
-        String locationText;
-
-        if (report.location != null && !report.location.isEmpty()) {
-            locationText = report.location;
-        } else {
-            locationText = report.address;
-        }
-
-        details.append(getString(R.string.map_report_address, locationText)).append("\n");        details.append(getString(R.string.map_report_date, report.date, report.time)).append("\n");
+        details.append(getString(R.string.map_report_address, report.address)).append("\n");
+        details.append(getString(R.string.map_report_date, report.date, report.time)).append("\n");
 
         builder.setMessage(details.toString());
         builder.setPositiveButton(getString(R.string.map_close), (dialog, which) -> dialog.dismiss());

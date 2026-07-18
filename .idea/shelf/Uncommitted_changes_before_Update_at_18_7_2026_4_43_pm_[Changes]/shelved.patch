@@ -1,0 +1,229 @@
+Index: app/src/main/java/com/example/smartroad/Report.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>package com.example.smartroad;\r\n\r\npublic class Report {\r\n    public String reportId;\r\n    public String userId;\r\n    public String description;\r\n    public String hazardType;\r\n    public double latitude;\r\n    public double longitude;\r\n    public String address;\r\n    public String date;\r\n    public String time;\r\n    public String status;\r\n\r\n    public Report() {\r\n        // Default constructor required for calls to DataSnapshot.getValue(Report.class)\r\n    }\r\n\r\n    public Report(String reportId, String userId, String description, String hazardType,\r\n                  double latitude, double longitude, String address, String date, String time, String status) {\r\n        this.reportId = reportId;\r\n        this.userId = userId;\r\n        this.description = description;\r\n        this.hazardType = hazardType;\r\n        this.latitude = latitude;\r\n        this.longitude = longitude;\r\n        this.address = address;\r\n        this.date = date;\r\n        this.time = time;\r\n        this.status = status;\r\n    }\r\n}\r\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/app/src/main/java/com/example/smartroad/Report.java b/app/src/main/java/com/example/smartroad/Report.java
+--- a/app/src/main/java/com/example/smartroad/Report.java	(revision 0c767b86d3c9ec8ca884d34ad9fe07dee2ffd8ca)
++++ b/app/src/main/java/com/example/smartroad/Report.java	(date 1784359508382)
+@@ -11,13 +11,14 @@
+     public String date;
+     public String time;
+     public String status;
++    public String location;
+ 
+-    public Report() {
++    public Report(String reportId, String userId, String description, String hazardType, double latitude, double longitude, String address, String date, String time, String aNew) {
+         // Default constructor required for calls to DataSnapshot.getValue(Report.class)
+     }
+ 
+     public Report(String reportId, String userId, String description, String hazardType,
+-                  double latitude, double longitude, String address, String date, String time, String status) {
++                  double latitude, double longitude, String address, String date, String time, String status, String location) {
+         this.reportId = reportId;
+         this.userId = userId;
+         this.description = description;
+@@ -28,5 +29,6 @@
+         this.date = date;
+         this.time = time;
+         this.status = status;
++        this.location = location;
+     }
+-}
++}
+\ No newline at end of file
+Index: app/src/main/java/com/example/smartroad/MapActivity.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>package com.example.smartroad;\r\n\r\nimport android.Manifest;\r\nimport android.content.pm.PackageManager;\r\nimport android.location.Location;\r\nimport android.os.Bundle;\r\nimport android.widget.Toast;\r\n\r\nimport androidx.annotation.NonNull;\r\nimport androidx.appcompat.app.AlertDialog;\r\nimport androidx.appcompat.app.AppCompatActivity;\r\nimport androidx.core.app.ActivityCompat;\r\nimport androidx.recyclerview.widget.LinearLayoutManager;\r\nimport androidx.recyclerview.widget.RecyclerView;\r\n\r\nimport com.google.android.gms.location.FusedLocationProviderClient;\r\nimport com.google.android.gms.location.LocationServices;\r\nimport com.google.android.gms.maps.CameraUpdateFactory;\r\nimport com.google.android.gms.maps.GoogleMap;\r\nimport com.google.android.gms.maps.OnMapReadyCallback;\r\nimport com.google.android.gms.maps.SupportMapFragment;\r\nimport com.google.android.gms.maps.model.BitmapDescriptorFactory;\r\nimport com.google.android.gms.maps.model.LatLng;\r\nimport com.google.android.gms.maps.model.Marker;\r\nimport com.google.android.gms.maps.model.MarkerOptions;\r\nimport com.google.android.material.bottomnavigation.BottomNavigationView;\r\nimport com.google.firebase.database.DataSnapshot;\r\nimport com.google.firebase.database.DatabaseError;\r\nimport com.google.firebase.database.DatabaseReference;\r\nimport com.google.firebase.database.FirebaseDatabase;\r\nimport com.google.firebase.database.ValueEventListener;\r\n\r\nimport java.util.ArrayList;\r\nimport java.util.HashMap;\r\nimport java.util.Map;\r\n\r\npublic class MapActivity extends AppCompatActivity\r\n        implements OnMapReadyCallback, GoogleMap.OnMarkerClickListener {\r\n\r\n    private GoogleMap mMap;\r\n    private BottomNavigationView bottomNavigationView;\r\n    private DatabaseReference mDatabase;\r\n    private Map<String, Report> reportMap = new HashMap<>();\r\n    private RecyclerView rvNearbyHazards;\r\n    private NearbyHazardAdapter adapter;\r\n    private ArrayList<NearbyHazard> nearbyHazards;\r\n    private FusedLocationProviderClient fusedLocationClient;\r\n\r\n    private double userLat;\r\n    private double userLng;\r\n\r\n    @Override\r\n    protected void onCreate(Bundle savedInstanceState) {\r\n        super.onCreate(savedInstanceState);\r\n        setContentView(R.layout.activity_map);\r\n\r\n        mDatabase = FirebaseDatabase.getInstance().getReference();\r\n        bottomNavigationView = findViewById(R.id.bottom_navigation);\r\n        NavigationUtils.setupBottomNavigation(this, bottomNavigationView, R.id.nav_map);\r\n\r\n        SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()\r\n                .findFragmentById(R.id.map);\r\n\r\n        rvNearbyHazards = findViewById(R.id.rvNearbyHazards);\r\n        nearbyHazards = new ArrayList<>();\r\n        adapter = new NearbyHazardAdapter(nearbyHazards);\r\n        rvNearbyHazards.setLayoutManager(new LinearLayoutManager(this));\r\n        rvNearbyHazards.setAdapter(adapter);\r\n\r\n        fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);\r\n\r\n        if (mapFragment != null) {\r\n            mapFragment.getMapAsync(this);\r\n        }\r\n    }\r\n\r\n    private void getCurrentLocation() {\r\n        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)\r\n                != PackageManager.PERMISSION_GRANTED) {\r\n            return;\r\n        }\r\n\r\n        fusedLocationClient.getLastLocation().addOnSuccessListener(location -> {\r\n            if (location != null) {\r\n                userLat = location.getLatitude();\r\n                userLng = location.getLongitude();\r\n                loadHazards();\r\n            }\r\n        });\r\n    }\r\n\r\n    @Override\r\n    public void onMapReady(GoogleMap googleMap) {\r\n        mMap = googleMap;\r\n\r\n        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {\r\n            mMap.setMyLocationEnabled(true);\r\n        } else {\r\n            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, 100);\r\n        }\r\n\r\n        mMap.setOnMarkerClickListener(this);\r\n        getCurrentLocation();\r\n\r\n        // Default location (Johor Bahru)\r\n        LatLng johorBahru = new LatLng(1.492659, 103.741359);\r\n        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(johorBahru, 12));\r\n    }\r\n\r\n    private void loadHazards() {\r\n        mDatabase.child(\"all_reports\").addValueEventListener(new ValueEventListener() {\r\n            @Override\r\n            public void onDataChange(@NonNull DataSnapshot snapshot) {\r\n                if (mMap == null) return;\r\n                mMap.clear();\r\n                reportMap.clear();\r\n                nearbyHazards.clear();\r\n\r\n                for (DataSnapshot data : snapshot.getChildren()) {\r\n                    Report report = data.getValue(Report.class);\r\n                    if (report == null) continue;\r\n\r\n                    float[] result = new float[1];\r\n                    Location.distanceBetween(\r\n                            userLat,\r\n                            userLng,\r\n                            report.latitude,\r\n                            report.longitude,\r\n                            result\r\n                    );\r\n                    float distanceMeter = result[0];\r\n\r\n                    if (distanceMeter <= 5000) {\r\n                        nearbyHazards.add(new NearbyHazard(\r\n                                report.hazardType,\r\n                                String.format(getString(R.string.map_distance_format), distanceMeter)\r\n                        ));\r\n                    }\r\n\r\n                    LatLng pos = new LatLng(report.latitude, report.longitude);\r\n                    Marker marker = mMap.addMarker(new MarkerOptions()\r\n                            .position(pos)\r\n                            .title(report.hazardType)\r\n                            .snippet(report.description)\r\n                            .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED)));\r\n\r\n                    if (marker != null) {\r\n                        reportMap.put(marker.getId(), report);\r\n                    }\r\n                }\r\n                adapter.notifyDataSetChanged();\r\n            }\r\n\r\n            @Override\r\n            public void onCancelled(@NonNull DatabaseError error) {\r\n                Toast.makeText(MapActivity.this, getString(R.string.map_load_failed), Toast.LENGTH_SHORT).show();\r\n            }\r\n        });\r\n    }\r\n\r\n    @Override\r\n    public boolean onMarkerClick(@NonNull Marker marker) {\r\n        Report report = reportMap.get(marker.getId());\r\n        if (report != null) {\r\n            showReportDetails(report);\r\n        }\r\n        return false;\r\n    }\r\n\r\n    private void showReportDetails(Report report) {\r\n        AlertDialog.Builder builder = new AlertDialog.Builder(this);\r\n        builder.setTitle(report.hazardType);\r\n\r\n        StringBuilder details = new StringBuilder();\r\n        details.append(getString(R.string.map_report_status, report.status)).append(\"\\n\");\r\n        details.append(getString(R.string.map_report_description, report.description)).append(\"\\n\");\r\n        details.append(getString(R.string.map_report_address, report.address)).append(\"\\n\");\r\n        details.append(getString(R.string.map_report_date, report.date, report.time)).append(\"\\n\");\r\n\r\n        builder.setMessage(details.toString());\r\n        builder.setPositiveButton(getString(R.string.map_close), (dialog, which) -> dialog.dismiss());\r\n        builder.show();\r\n    }\r\n}\r\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/app/src/main/java/com/example/smartroad/MapActivity.java b/app/src/main/java/com/example/smartroad/MapActivity.java
+--- a/app/src/main/java/com/example/smartroad/MapActivity.java	(revision 0c767b86d3c9ec8ca884d34ad9fe07dee2ffd8ca)
++++ b/app/src/main/java/com/example/smartroad/MapActivity.java	(date 1784359472329)
+@@ -100,7 +100,7 @@
+         }
+ 
+         mMap.setOnMarkerClickListener(this);
+-        getCurrentLocation();
++        loadHazards();
+ 
+         // Default location (Johor Bahru)
+         LatLng johorBahru = new LatLng(1.492659, 103.741359);
+@@ -108,54 +108,80 @@
+     }
+ 
+     private void loadHazards() {
+-        mDatabase.child("all_reports").addValueEventListener(new ValueEventListener() {
+-            @Override
+-            public void onDataChange(@NonNull DataSnapshot snapshot) {
+-                if (mMap == null) return;
+-                mMap.clear();
+-                reportMap.clear();
+-                nearbyHazards.clear();
++
++        mDatabase.child("Hazards")
++                .addValueEventListener(new ValueEventListener() {
++
++                    @Override
++                    public void onDataChange(@NonNull DataSnapshot snapshot) {
++
++                        if (mMap == null)
++                            return;
++
++                        mMap.clear();
++
++                        reportMap.clear();
+ 
+-                for (DataSnapshot data : snapshot.getChildren()) {
+-                    Report report = data.getValue(Report.class);
+-                    if (report == null) continue;
++                        for (DataSnapshot data : snapshot.getChildren()) {
++
++                            Report report = data.getValue(Report.class);
+ 
+-                    float[] result = new float[1];
+-                    Location.distanceBetween(
+-                            userLat,
+-                            userLng,
+-                            report.latitude,
+-                            report.longitude,
+-                            result
+-                    );
+-                    float distanceMeter = result[0];
++                            if (report != null) {
++
++                                LatLng pos =
++                                        new LatLng(
++                                                report.latitude,
++                                                report.longitude
++                                        );
+ 
+-                    if (distanceMeter <= 5000) {
+-                        nearbyHazards.add(new NearbyHazard(
+-                                report.hazardType,
+-                                String.format(getString(R.string.map_distance_format), distanceMeter)
+-                        ));
+-                    }
++                                Marker marker =
++                                        mMap.addMarker(
+ 
+-                    LatLng pos = new LatLng(report.latitude, report.longitude);
+-                    Marker marker = mMap.addMarker(new MarkerOptions()
+-                            .position(pos)
+-                            .title(report.hazardType)
+-                            .snippet(report.description)
+-                            .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED)));
++                                                new MarkerOptions()
++
++                                                        .position(pos)
++
++                                                        .title(report.hazardType)
++
++                                                        .snippet(report.description)
++
++                                                        .icon(
++                                                                BitmapDescriptorFactory
++                                                                        .defaultMarker(
++                                                                                BitmapDescriptorFactory.HUE_RED
++                                                                        )
++                                                        )
++
++                                        );
+ 
+-                    if (marker != null) {
+-                        reportMap.put(marker.getId(), report);
+-                    }
+-                }
+-                adapter.notifyDataSetChanged();
+-            }
++                                if (marker != null) {
++
++                                    reportMap.put(
++                                            marker.getId(),
++                                            report
++                                    );
++
++                                }
++
++                            }
++
++                        }
++
++                    }
+ 
+-            @Override
+-            public void onCancelled(@NonNull DatabaseError error) {
+-                Toast.makeText(MapActivity.this, getString(R.string.map_load_failed), Toast.LENGTH_SHORT).show();
+-            }
+-        });
++                    @Override
++                    public void onCancelled(@NonNull DatabaseError error) {
++
++                        Toast.makeText(
++                                MapActivity.this,
++                                "Failed to load hazards.",
++                                Toast.LENGTH_SHORT
++                        ).show();
++
++                    }
++
++                });
++
+     }
+ 
+     @Override
+@@ -174,11 +200,18 @@
+         StringBuilder details = new StringBuilder();
+         details.append(getString(R.string.map_report_status, report.status)).append("\n");
+         details.append(getString(R.string.map_report_description, report.description)).append("\n");
+-        details.append(getString(R.string.map_report_address, report.address)).append("\n");
+-        details.append(getString(R.string.map_report_date, report.date, report.time)).append("\n");
++        String locationText;
++
++        if (report.location != null && !report.location.isEmpty()) {
++            locationText = report.location;
++        } else {
++            locationText = report.address;
++        }
++
++        details.append(getString(R.string.map_report_address, locationText)).append("\n");        details.append(getString(R.string.map_report_date, report.date, report.time)).append("\n");
+ 
+         builder.setMessage(details.toString());
+         builder.setPositiveButton(getString(R.string.map_close), (dialog, which) -> dialog.dismiss());
+         builder.show();
+     }
+-}
++}
+\ No newline at end of file
+Index: .idea/.name
+===================================================================
+diff --git a/.idea/.name b/.idea/.name
+deleted file mode 100644
+--- a/.idea/.name	(revision 0c767b86d3c9ec8ca884d34ad9fe07dee2ffd8ca)
++++ /dev/null	(revision 0c767b86d3c9ec8ca884d34ad9fe07dee2ffd8ca)
+@@ -1,1 +0,0 @@
+-SmartRoad
+\ No newline at end of file
+Index: .idea/deploymentTargetSelector.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+><?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n<project version=\"4\">\r\n  <component name=\"deploymentTargetSelector\">\r\n    <selectionStates>\r\n      <SelectionState runConfigName=\"app\">\r\n        <option name=\"selectionMode\" value=\"DROPDOWN\" />\r\n        <DropdownSelection timestamp=\"2026-07-18T03:26:42.952498100Z\">\r\n          <Target type=\"DEFAULT_BOOT\">\r\n            <handle>\r\n              <DeviceId pluginId=\"LocalEmulator\" identifier=\"path=C:\\Users\\User\\.android\\avd\\Small_Phone.avd\" />\r\n            </handle>\r\n          </Target>\r\n        </DropdownSelection>\r\n        <DialogSelection>\r\n          <targets>\r\n            <Target type=\"DEFAULT_BOOT\">\r\n              <handle>\r\n                <DeviceId pluginId=\"PhysicalDevice\" identifier=\"serial=6b5ecfe3\" />\r\n              </handle>\r\n            </Target>\r\n          </targets>\r\n        </DialogSelection>\r\n      </SelectionState>\r\n    </selectionStates>\r\n  </component>\r\n</project>
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/.idea/deploymentTargetSelector.xml b/.idea/deploymentTargetSelector.xml
+--- a/.idea/deploymentTargetSelector.xml	(revision 0c767b86d3c9ec8ca884d34ad9fe07dee2ffd8ca)
++++ b/.idea/deploymentTargetSelector.xml	(date 1784359679234)
+@@ -4,7 +4,7 @@
+     <selectionStates>
+       <SelectionState runConfigName="app">
+         <option name="selectionMode" value="DROPDOWN" />
+-        <DropdownSelection timestamp="2026-07-18T03:26:42.952498100Z">
++        <DropdownSelection timestamp="2026-07-18T07:25:25.463725600Z">
+           <Target type="DEFAULT_BOOT">
+             <handle>
+               <DeviceId pluginId="LocalEmulator" identifier="path=C:\Users\User\.android\avd\Small_Phone.avd" />
