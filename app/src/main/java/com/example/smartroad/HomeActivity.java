@@ -132,20 +132,26 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
     }
 
     private void loadHazards() {
-        mDatabase.child("all_reports").addValueEventListener(new ValueEventListener() {
+        mDatabase.child("Hazards").addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 if (mMap == null) return;
                 mMap.clear();
                 for (DataSnapshot data : snapshot.getChildren()) {
                     Report report = data.getValue(Report.class);
-                    if (report != null) {
-                        LatLng pos = new LatLng(report.latitude, report.longitude);
-                        mMap.addMarker(new MarkerOptions()
-                                .position(pos)
-                                .title(report.hazardType)
-                                .snippet(report.description)
-                                .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED)));
+                    if (report != null && report.latitude != null && report.longitude != null) {
+                        try {
+                            double lat = Double.parseDouble(report.latitude);
+                            double lng = Double.parseDouble(report.longitude);
+                            LatLng pos = new LatLng(lat, lng);
+                            mMap.addMarker(new MarkerOptions()
+                                    .position(pos)
+                                    .title(report.hazardType)
+                                    .snippet(report.description)
+                                    .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED)));
+                        } catch (NumberFormatException e) {
+                            e.printStackTrace();
+                        }
                     }
                 }
             }

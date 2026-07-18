@@ -59,7 +59,7 @@
     <string name="report_desc_hint">Add a detailed description of the hazard&#8230;</string>
     <string name="report_image_btn">Add Photo Evidence</string>
     <string name="report_location_btn">Capture Current Location</string>
-    <string name="report_location_address">Current Location Address</string>
+    <string name="report_location_address">Current Location</string>
     <string name="report_lat_label">Latitude : %1$s</string>
     <string name="report_long_label">Longitude : %1$s</string>
     <string name="report_date_label">Date : %1$s</string>

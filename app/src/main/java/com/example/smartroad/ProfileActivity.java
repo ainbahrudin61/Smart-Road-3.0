@@ -21,6 +21,11 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
 import androidx.annotation.NonNull;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class ProfileActivity extends AppCompatActivity {
 
@@ -31,6 +36,10 @@ public class ProfileActivity extends AppCompatActivity {
     Button btnEdit;
     Button btnPassword;
     Button btnLogout;
+
+    RecyclerView rvMyReports;
+    MyReportAdapter adapter;
+    List<Report> myReports;
 
     BottomNavigationView bottomNavigationView;
     private DatabaseReference mDatabase;
@@ -67,6 +76,13 @@ public class ProfileActivity extends AppCompatActivity {
         btnEdit = findViewById(R.id.btnEdit);
         btnPassword = findViewById(R.id.btnPassword);
         btnLogout = findViewById(R.id.btnLogout);
+
+        //RECYCLER VIEW
+        rvMyReports = findViewById(R.id.rvMyReports);
+        myReports = new ArrayList<>();
+        adapter = new MyReportAdapter(myReports);
+        rvMyReports.setLayoutManager(new LinearLayoutManager(this));
+        rvMyReports.setAdapter(adapter);
 
 
 
@@ -203,26 +219,33 @@ public class ProfileActivity extends AppCompatActivity {
         
         String userId = mAuth.getCurrentUser().getUid();
         
-        // Struktur data: reports/userId/
-        mDatabase.child("reports").child(userId).addValueEventListener(new ValueEventListener() {
+        // Mengambil data dari nod "Hazards" dan menapis mengikut userId
+        mDatabase.child("Hazards").addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 int investigationCount = 0;
                 int resolvedCount = 0;
+                myReports.clear();
                 
                 for (DataSnapshot postSnapshot : snapshot.getChildren()) {
-                    String status = postSnapshot.child("status").getValue(String.class);
-                    if (status != null) {
-                        if (status.equalsIgnoreCase("Under Investigation")) {
-                            investigationCount++;
-                        } else if (status.equalsIgnoreCase("Resolved")) {
-                            resolvedCount++;
+                    Report report = postSnapshot.getValue(Report.class);
+                    if (report != null && userId.equals(report.userId)) {
+                        myReports.add(report);
+                        String status = report.status;
+                        if (status != null) {
+                            // Mengira status "New" sebagai sebahagian daripada "Under Investigation" atau mengikut status tepat
+                            if (status.equalsIgnoreCase("Under Investigation") || status.equalsIgnoreCase("New")) {
+                                investigationCount++;
+                            } else if (status.equalsIgnoreCase("Resolved")) {
+                                resolvedCount++;
+                            }
                         }
                     }
                 }
                 
                 txtInvestigation.setText(String.valueOf(investigationCount));
                 txtResolved.setText(String.valueOf(resolvedCount));
+                adapter.notifyDataSetChanged();
             }
 
             @Override

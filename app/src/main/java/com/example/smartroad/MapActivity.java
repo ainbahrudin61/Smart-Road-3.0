@@ -108,7 +108,7 @@ public class MapActivity extends AppCompatActivity
     }
 
     private void loadHazards() {
-        mDatabase.child("all_reports").addValueEventListener(new ValueEventListener() {
+        mDatabase.child("Hazards").addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 if (mMap == null) return;
@@ -121,23 +121,27 @@ public class MapActivity extends AppCompatActivity
                     if (report == null) continue;
 
                     float[] result = new float[1];
+                    double lat = Double.parseDouble(report.latitude);
+                    double lng = Double.parseDouble(report.longitude);
+                    
                     Location.distanceBetween(
                             userLat,
                             userLng,
-                            report.latitude,
-                            report.longitude,
+                            lat,
+                            lng,
                             result
                     );
                     float distanceMeter = result[0];
 
                     if (distanceMeter <= 5000) {
                         nearbyHazards.add(new NearbyHazard(
+                                report.hazardId,
                                 report.hazardType,
                                 String.format(getString(R.string.map_distance_format), distanceMeter)
                         ));
                     }
 
-                    LatLng pos = new LatLng(report.latitude, report.longitude);
+                    LatLng pos = new LatLng(lat, lng);
                     Marker marker = mMap.addMarker(new MarkerOptions()
                             .position(pos)
                             .title(report.hazardType)
@@ -174,7 +178,7 @@ public class MapActivity extends AppCompatActivity
         StringBuilder details = new StringBuilder();
         details.append(getString(R.string.map_report_status, report.status)).append("\n");
         details.append(getString(R.string.map_report_description, report.description)).append("\n");
-        details.append(getString(R.string.map_report_address, report.address)).append("\n");
+        details.append(getString(R.string.map_report_address, report.location)).append("\n");
         details.append(getString(R.string.map_report_date, report.date, report.time)).append("\n");
 
         builder.setMessage(details.toString());

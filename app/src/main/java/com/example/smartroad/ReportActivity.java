@@ -62,7 +62,7 @@ public class ReportActivity extends AppCompatActivity {
 
     // Variables to store location data
     private double currentLat, currentLng;
-    private String currentAddressStr = "";
+    private String currentLocationStr = "";
     private String currentDateStr, currentTimeStr;
 
     @Override
@@ -112,8 +112,8 @@ public class ReportActivity extends AppCompatActivity {
     }
 
     private void setupDateTime() {
-        currentDateStr = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).format(new Date());
-        currentTimeStr = new SimpleDateFormat("hh:mm a", Locale.getDefault()).format(new Date());
+        currentDateStr = "-";
+        currentTimeStr = "-";
 
         txtDate.setText(getString(R.string.report_date_label, currentDateStr));
         txtTime.setText(getString(R.string.report_time_label, currentTimeStr));
@@ -151,12 +151,17 @@ public class ReportActivity extends AppCompatActivity {
                         currentLat = location.getLatitude();
                         currentLng = location.getLongitude();
 
+                        currentDateStr = new SimpleDateFormat("dd-MM-yyyy", Locale.getDefault()).format(new Date());
+                        currentTimeStr = new SimpleDateFormat("hh:mm:ss a", Locale.getDefault()).format(new Date()).toLowerCase();
+                        txtDate.setText(getString(R.string.report_date_label, currentDateStr));
+                        txtTime.setText(getString(R.string.report_time_label, currentTimeStr));
+
                         Geocoder geocoder = new Geocoder(this, Locale.getDefault());
                         try {
                             List<Address> addresses = geocoder.getFromLocation(currentLat, currentLng, 1);
                             if (addresses != null && !addresses.isEmpty()) {
-                                currentAddressStr = addresses.get(0).getAddressLine(0);
-                                txtAddress.setText(getString(R.string.report_address_display, currentAddressStr));
+                                currentLocationStr = addresses.get(0).getAddressLine(0);
+                                txtAddress.setText(getString(R.string.report_address_display, currentLocationStr));
                             }
                         } catch (IOException e) {
                             e.printStackTrace();
@@ -204,20 +209,21 @@ public class ReportActivity extends AppCompatActivity {
         if (mAuth.getCurrentUser() == null) return;
 
         String userId = mAuth.getCurrentUser().getUid();
-        String reportId = mDatabase.child("Hazards").push().getKey();
+        String hazardId = mDatabase.child("Hazards").push().getKey();
 
         int selectedId = radioHazard.getCheckedRadioButtonId();
         RadioButton radioButton = findViewById(selectedId);
         String hazardType = radioButton.getText().toString();
 
         String base64Image = encodeImageToBase64(selectedImageUri);
+        String userAgent = android.os.Build.MODEL; // Mendapatkan model peranti (cth: Pixel 4, SM-G973F)
 
-        // Updated constructor: reportId, userId, username, description, hazardType, lat, lng, address, date, time, status, imageUrl
-        Report report = new Report(reportId, userId, currentUsername, description, hazardType,
-                currentLat, currentLng, currentAddressStr, currentDateStr, currentTimeStr, "New", base64Image);
+        // Updated constructor: hazardId, userId, username, description, hazardType, lat, lng, location, date, time, status, image, userAgent
+        Report report = new Report(hazardId, userId, currentUsername, description, hazardType,
+                String.valueOf(currentLat), String.valueOf(currentLng), currentLocationStr, currentDateStr, currentTimeStr, "New", base64Image, userAgent);
 
-        if (reportId != null) {
-            mDatabase.child("Hazards").child(reportId).setValue(report)
+        if (hazardId != null) {
+            mDatabase.child("Hazards").child(hazardId).setValue(report)
                     .addOnSuccessListener(unused -> showSuccessDialog())
                     .addOnFailureListener(e -> Toast.makeText(ReportActivity.this,
                             "Failed to save report: " + e.getMessage(),
@@ -228,9 +234,24 @@ public class ReportActivity extends AppCompatActivity {
     private String encodeImageToBase64(Uri uri) {
         try {
             Bitmap bitmap = MediaStore.Images.Media.getBitmap(this.getContentResolver(), uri);
+            
+            // Kecilkan saiz gambar (Resize) untuk mengelakkan string terlalu panjang
+            int maxSize = 480; // Maksimum lebar atau tinggi
+            int width = bitmap.getWidth();
+            int height = bitmap.getHeight();
+            float bitmapRatio = (float) width / (float) height;
+            if (bitmapRatio > 1) {
+                width = maxSize;
+                height = (int) (width / bitmapRatio);
+            } else {
+                height = maxSize;
+                width = (int) (height * bitmapRatio);
+            }
+            Bitmap resizedBitmap = Bitmap.createScaledBitmap(bitmap, width, height, true);
+            
             ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-            // Compress image to JPEG to reduce size for Base64 storage in Realtime Database
-            bitmap.compress(Bitmap.CompressFormat.JPEG, 50, outputStream);
+            // Gunakan mampatan 70% untuk kualiti yang seimbang
+            resizedBitmap.compress(Bitmap.CompressFormat.JPEG, 70, outputStream);
             byte[] byteArray = outputStream.toByteArray();
             return Base64.encodeToString(byteArray, Base64.DEFAULT);
         } catch (IOException e) {

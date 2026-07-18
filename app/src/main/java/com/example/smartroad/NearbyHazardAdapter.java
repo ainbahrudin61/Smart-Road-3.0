@@ -1,5 +1,6 @@
 package com.example.smartroad;
 
+import android.content.Intent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -47,6 +48,11 @@ public class NearbyHazardAdapter
         holder.txtDistance.setText(
                 hazard.getDistance());
 
+        holder.itemView.setOnClickListener(v -> {
+            Intent intent = new Intent(v.getContext(), HazardDetailsActivity.class);
+            intent.putExtra("HAZARD_ID", hazard.getHazardId());
+            v.getContext().startActivity(intent);
+        });
     }
 
     @Override
