@@ -95,4 +95,20 @@
     <string name="map_report_address">Address: %1$s</string>
     <string name="map_report_date">Date: %1$s %2$s</string>
     <string name="map_close">Close</string>
+
+    <!-- Report Messages -->
+    <string name="report_image_selected">Image Selected</string>
+    <string name="report_enter_description">Please enter description</string>
+    <string name="report_select_hazard">Please select hazard type</string>
+    <string name="report_upload_image">Please upload image</string>
+    <string name="report_get_location">Please get current location</string>
+    <string name="report_address_display">Current Location : \n\n%1$s</string>
+    <string name="report_gps_retrieved">GPS Retrieved</string>
+    <string name="report_gps_error">Unable to get GPS. Please ensure GPS is on.</string>
+    <string name="report_location_error">Location Error: %1$s</string>
+    <string name="report_save_user_failed">Failed to save user report: %1$s</string>
+    <string name="report_save_hazard_failed">Failed to save hazard: %1$s</string>
+    <string name="report_success_title">SMARTROAD</string>
+    <string name="report_success_message">Report Submitted Successfully.\n\nStatus : New\n\nThe administrator will review and update the status of your report.</string>
+    <string name="report_ok">OK</string>
 </resources>
