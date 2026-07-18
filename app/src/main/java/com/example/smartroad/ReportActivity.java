@@ -1,52 +1,69 @@
 package com.example.smartroad;
 
-import static androidx.core.location.LocationManagerCompat.getCurrentLocation;
-
 import android.Manifest;
-import android.content.Intent;
 import android.content.pm.PackageManager;
-import androidx.core.app.ActivityCompat;
-import com.google.android.gms.location.FusedLocationProviderClient;
-import com.google.android.gms.location.LocationServices;
-import com.google.android.material.bottomnavigation.BottomNavigationView;
-import android.location.Location;
+import android.graphics.Bitmap;
+import android.location.Address;
+import android.location.Geocoder;
 import android.net.Uri;
-import androidx.activity.result.ActivityResultLauncher;
-import androidx.activity.result.contract.ActivityResultContracts;
-import androidx.appcompat.app.AlertDialog;
-import androidx.appcompat.app.AppCompatActivity;
 import android.os.Bundle;
+import android.provider.MediaStore;
+import android.util.Base64;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.TextView;
 import android.widget.Toast;
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.Locale;
+
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+
+import com.google.android.gms.location.FusedLocationProviderClient;
+import com.google.android.gms.location.LocationServices;
+import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
-import android.location.Address;
-import android.location.Geocoder;
+import com.google.firebase.database.ValueEventListener;
+
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 
 public class ReportActivity extends AppCompatActivity {
 
-    Button btnImage, btnLocation, btnSubmit;
-    EditText etDescription;
-    ImageView imgReport;
-    RadioGroup radioHazard;
-    TextView txtAddress, txtLatitude, txtLongitude, txtDate, txtTime;
-    BottomNavigationView bottomNavigationView;
-    boolean imageUploaded = false;
-    boolean gpsTaken = false;
-    FusedLocationProviderClient fusedLocation;
+    private Button btnImage, btnLocation, btnSubmit;
+    private EditText etDescription;
+    private ImageView imgReport;
+    private RadioGroup radioHazard;
+    private TextView txtAddress, txtLatitude, txtLongitude, txtDate, txtTime;
+    private BottomNavigationView bottomNavigationView;
+
+    private boolean imageUploaded = false;
+    private boolean gpsTaken = false;
+    private Uri selectedImageUri;
+    private String currentUsername = "Unknown User";
+
+    private FusedLocationProviderClient fusedLocation;
     private ActivityResultLauncher<String> mGetContent;
     private DatabaseReference mDatabase;
     private FirebaseAuth mAuth;
+
+    // Variables to store location data
+    private double currentLat, currentLng;
+    private String currentAddressStr = "";
+    private String currentDateStr, currentTimeStr;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -55,21 +72,31 @@ public class ReportActivity extends AppCompatActivity {
 
         mAuth = FirebaseAuth.getInstance();
         mDatabase = FirebaseDatabase.getInstance().getReference();
+        fusedLocation = LocationServices.getFusedLocationProviderClient(this);
+
+        initUI();
+        setupDateTime();
+        fetchUsername();
 
         // Initialize ActivityResultLauncher
         mGetContent = registerForActivityResult(new ActivityResultContracts.GetContent(),
                 uri -> {
                     if (uri != null) {
+                        selectedImageUri = uri;
                         imgReport.setImageURI(uri);
                         imageUploaded = true;
-                        Toast.makeText(this, "Image Selected", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(this, getString(R.string.report_image_selected), Toast.LENGTH_SHORT).show();
                     }
                 });
 
-        bottomNavigationView = findViewById(R.id.bottom_navigation);
         NavigationUtils.setupBottomNavigation(this, bottomNavigationView, R.id.nav_report);
 
-        // CONNECT XML
+        btnImage.setOnClickListener(v -> mGetContent.launch("image/*"));
+        btnLocation.setOnClickListener(v -> getCurrentLocation());
+        btnSubmit.setOnClickListener(v -> validateAndSubmit());
+    }
+
+    private void initUI() {
         btnImage = findViewById(R.id.btnImage);
         btnLocation = findViewById(R.id.btnLocation);
         btnSubmit = findViewById(R.id.btnSubmit);
@@ -81,59 +108,35 @@ public class ReportActivity extends AppCompatActivity {
         txtDate = findViewById(R.id.txtDate);
         txtTime = findViewById(R.id.txtTime);
         txtAddress = findViewById(R.id.txtAddress);
+        bottomNavigationView = findViewById(R.id.bottom_navigation);
+    }
 
-        fusedLocation = LocationServices.getFusedLocationProviderClient(this);
+    private void setupDateTime() {
+        currentDateStr = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).format(new Date());
+        currentTimeStr = new SimpleDateFormat("hh:mm a", Locale.getDefault()).format(new Date());
 
-        // CURRENT DATE
-        String currentDate = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).format(new Date());
+        txtDate.setText(getString(R.string.report_date_label, currentDateStr));
+        txtTime.setText(getString(R.string.report_time_label, currentTimeStr));
+    }
 
-        // CURRENT TIME
-        String currentTime = new SimpleDateFormat("hh:mm a", Locale.getDefault()).format(new Date());
+    private void fetchUsername() {
+        if (mAuth.getCurrentUser() != null) {
+            String uid = mAuth.getCurrentUser().getUid();
+            mDatabase.child("users").child(uid).addListenerForSingleValueEvent(new ValueEventListener() {
+                @Override
+                public void onDataChange(@NonNull DataSnapshot snapshot) {
+                    if (snapshot.exists()) {
+                        User user = snapshot.getValue(User.class);
+                        if (user != null && user.name != null) {
+                            currentUsername = user.name;
+                        }
+                    }
+                }
 
-        txtDate.setText("Date : " + currentDate);
-        txtTime.setText("Time : " + currentTime);
-
-        // IMAGE BUTTON
-        btnImage.setOnClickListener(v -> {
-            mGetContent.launch("image/*");
-        });
-
-        // LOCATION BUTTON
-        btnLocation.setOnClickListener(v -> {
-            getCurrentLocation();
-        });
-
-        // SUBMIT BUTTON
-        btnSubmit.setOnClickListener(v -> {
-            String description = etDescription.getText().toString().trim();
-
-            // DESCRIPTION
-            if (description.isEmpty()) {
-                Toast.makeText(this, "Please enter description", Toast.LENGTH_SHORT).show();
-                return;
-            }
-
-            // HAZARD
-            if (radioHazard.getCheckedRadioButtonId() == -1) {
-                Toast.makeText(this, "Please select hazard type", Toast.LENGTH_SHORT).show();
-                return;
-            }
-
-            // IMAGE
-            if (!imageUploaded) {
-                Toast.makeText(this, "Please upload image", Toast.LENGTH_SHORT).show();
-                return;
-            }
-
-            // GPS
-            if (!gpsTaken) {
-                Toast.makeText(this, "Please get current location", Toast.LENGTH_SHORT).show();
-                return;
-            }
-
-            // SUCCESS
-            saveReportToFirebase(description);
-        });
+                @Override
+                public void onCancelled(@NonNull DatabaseError error) {}
+            });
+        }
     }
 
     private void getCurrentLocation() {
@@ -145,90 +148,103 @@ public class ReportActivity extends AppCompatActivity {
         fusedLocation.getLastLocation()
                 .addOnSuccessListener(location -> {
                     if (location != null) {
-                        double latitude = location.getLatitude();
-                        double longitude = location.getLongitude();
+                        currentLat = location.getLatitude();
+                        currentLng = location.getLongitude();
 
                         Geocoder geocoder = new Geocoder(this, Locale.getDefault());
-
                         try {
-                            List<Address> addresses = geocoder.getFromLocation(latitude, longitude, 1);
-
+                            List<Address> addresses = geocoder.getFromLocation(currentLat, currentLng, 1);
                             if (addresses != null && !addresses.isEmpty()) {
-                                Address address = addresses.get(0);
-                                String fullAddress = address.getAddressLine(0);
-                                txtAddress.setText("Current Location : \n\n" + fullAddress);
+                                currentAddressStr = addresses.get(0).getAddressLine(0);
+                                txtAddress.setText(getString(R.string.report_address_display, currentAddressStr));
                             }
                         } catch (IOException e) {
                             e.printStackTrace();
                         }
 
-                        txtLatitude.setText("Latitude : " + latitude);
-                        txtLongitude.setText("Longitude : " + longitude);
-
+                        txtLatitude.setText(getString(R.string.report_lat_label, String.valueOf(currentLat)));
+                        txtLongitude.setText(getString(R.string.report_long_label, String.valueOf(currentLng)));
                         gpsTaken = true;
-
-                        Toast.makeText(this, "GPS Retrieved", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(this, getString(R.string.report_gps_retrieved), Toast.LENGTH_SHORT).show();
                     } else {
-                        Toast.makeText(this, "Unable to get GPS. Please ensure GPS is on.", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(this, getString(R.string.report_gps_error), Toast.LENGTH_SHORT).show();
                     }
                 }).addOnFailureListener(e -> {
-                    Toast.makeText(this, "Location Error: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-                });
+            Toast.makeText(this, getString(R.string.report_location_error, e.getMessage()), Toast.LENGTH_SHORT).show();
+        });
+    }
+
+    private void validateAndSubmit() {
+        String description = etDescription.getText().toString().trim();
+
+        if (description.isEmpty()) {
+            Toast.makeText(this, getString(R.string.report_enter_description), Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        if (radioHazard.getCheckedRadioButtonId() == -1) {
+            Toast.makeText(this, getString(R.string.report_select_hazard), Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        if (!imageUploaded) {
+            Toast.makeText(this, getString(R.string.report_upload_image), Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        if (!gpsTaken) {
+            Toast.makeText(this, getString(R.string.report_get_location), Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        saveReportToFirebase(description);
     }
 
     private void saveReportToFirebase(String description) {
-        if (mAuth.getCurrentUser() == null) {
-            Toast.makeText(this, "Please login first", Toast.LENGTH_SHORT).show();
-            return;
-        }
+        if (mAuth.getCurrentUser() == null) return;
 
         String userId = mAuth.getCurrentUser().getUid();
         String reportId = mDatabase.child("Hazards").push().getKey();
 
         int selectedId = radioHazard.getCheckedRadioButtonId();
-        android.widget.RadioButton radioButton = findViewById(selectedId);
+        RadioButton radioButton = findViewById(selectedId);
         String hazardType = radioButton.getText().toString();
 
-        double latitude = Double.parseDouble(txtLatitude.getText().toString().replace("Latitude : ", ""));
-        double longitude = Double.parseDouble(txtLongitude.getText().toString().replace("Longitude : ", ""));
-        String address = txtAddress.getText().toString().replace("Current Location : \n\n", "");
-        String date = txtDate.getText().toString().replace("Date : ", "");
-        String time = txtTime.getText().toString().replace("Time : ", "");
+        String base64Image = encodeImageToBase64(selectedImageUri);
 
-        Report report = new Report(reportId, userId, description, hazardType,
-                latitude, longitude, address, date, time, "New");
+        // Updated constructor: reportId, userId, username, description, hazardType, lat, lng, address, date, time, status, imageUrl
+        Report report = new Report(reportId, userId, currentUsername, description, hazardType,
+                currentLat, currentLng, currentAddressStr, currentDateStr, currentTimeStr, "New", base64Image);
 
         if (reportId != null) {
             mDatabase.child("Hazards").child(reportId).setValue(report)
-                    .addOnSuccessListener(unused -> {
-                        mDatabase.child("user_reports").child(userId).child(reportId).setValue(report)
-                                .addOnSuccessListener(unused2 -> {
-                                    showSuccessDialog();
-                                })
-                                .addOnFailureListener(e -> {
-                                    Toast.makeText(ReportActivity.this,
-                                            "Failed to save user report: " + e.getMessage(),
-                                            Toast.LENGTH_SHORT).show();
-                                });
-                    })
-                    .addOnFailureListener(e -> {
-                        Toast.makeText(ReportActivity.this,
-                                "Failed to save hazard: " + e.getMessage(),
-                                Toast.LENGTH_SHORT).show();
-                    });
+                    .addOnSuccessListener(unused -> showSuccessDialog())
+                    .addOnFailureListener(e -> Toast.makeText(ReportActivity.this,
+                            "Failed to save report: " + e.getMessage(),
+                            Toast.LENGTH_SHORT).show());
         }
     }
 
-    // SUCCESS POPUP
+    private String encodeImageToBase64(Uri uri) {
+        try {
+            Bitmap bitmap = MediaStore.Images.Media.getBitmap(this.getContentResolver(), uri);
+            ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+            // Compress image to JPEG to reduce size for Base64 storage in Realtime Database
+            bitmap.compress(Bitmap.CompressFormat.JPEG, 50, outputStream);
+            byte[] byteArray = outputStream.toByteArray();
+            return Base64.encodeToString(byteArray, Base64.DEFAULT);
+        } catch (IOException e) {
+            e.printStackTrace();
+            return "";
+        }
+    }
+
     private void showSuccessDialog() {
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setTitle("SMARTROAD");
-        builder.setMessage("Report Submitted Successfully.\n\n" +
-                "Status : New\n\n" +
-                "The administrator will review and update the status of your report.");
-        builder.setPositiveButton("OK", (dialog, which) -> {
-            finish();
-        });
-        builder.show();
+        new AlertDialog.Builder(this)
+                .setTitle(getString(R.string.report_success_title))
+                .setMessage(getString(R.string.report_success_message))
+                .setPositiveButton(getString(R.string.report_ok), (dialog, which) -> finish())
+                .setCancelable(false)
+                .show();
     }
 }
