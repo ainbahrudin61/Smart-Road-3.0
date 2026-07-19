@@ -151,6 +151,7 @@ public class MapActivity extends AppCompatActivity
                             .title(report.hazardType)
                             .snippet(report.description)
                             .icon(getHazardIcon(report.hazardType))
+                            .anchor(0.5f, 1f)
                     );
 
                     if (marker != null) {
@@ -198,14 +199,22 @@ public class MapActivity extends AppCompatActivity
                 image
         );
 
-        Bitmap smallBitmap = Bitmap.createScaledBitmap(
+        int targetWidth = 150;
+
+        float ratio = (float) bitmap.getHeight() / bitmap.getWidth();
+
+        int targetHeight = (int) (targetWidth * ratio);
+
+
+        Bitmap resizedBitmap = Bitmap.createScaledBitmap(
                 bitmap,
-                60,  // width
-                60,  // height
-                false
+                targetWidth,
+                targetHeight,
+                true
         );
 
-        return BitmapDescriptorFactory.fromBitmap(smallBitmap);
+
+        return BitmapDescriptorFactory.fromBitmap(resizedBitmap);
     }
 
 
