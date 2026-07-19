@@ -34,6 +34,9 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.google.android.gms.maps.model.BitmapDescriptor;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
+
 public class MapActivity extends AppCompatActivity
         implements OnMapReadyCallback, GoogleMap.OnMarkerClickListener {
 
@@ -143,10 +146,11 @@ public class MapActivity extends AppCompatActivity
 
                     LatLng pos = new LatLng(lat, lng);
                     Marker marker = mMap.addMarker(new MarkerOptions()
-                            .position(pos)
+                            .position(report.location)
                             .title(report.hazardType)
                             .snippet(report.description)
-                            .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED)));
+                            .icon(getHazardIcon(report.hazardType))
+                    );
 
                     if (marker != null) {
                         reportMap.put(marker.getId(), report);
@@ -184,5 +188,55 @@ public class MapActivity extends AppCompatActivity
         builder.setMessage(details.toString());
         builder.setPositiveButton(getString(R.string.map_close), (dialog, which) -> dialog.dismiss());
         builder.show();
+    }
+
+    private BitmapDescriptor getHazardIcon(String hazardType) {
+
+        switch (hazardType) {
+
+            case "Pothole":
+                return BitmapDescriptorFactory.fromResource(
+                        R.drawable.ic_pothole
+                );
+
+
+            case "Flood":
+                return BitmapDescriptorFactory.fromResource(
+                        R.drawable.ic_flood
+                );
+
+
+            case "Fallen Tree":
+                return BitmapDescriptorFactory.fromResource(
+                        R.drawable.ic_tree
+                );
+
+
+            case "Traffic Accident":
+                return BitmapDescriptorFactory.fromResource(
+                        R.drawable.ic_accident
+                );
+
+
+            case "Damaged Traffic Light":
+                return BitmapDescriptorFactory.fromResource(
+                        R.drawable.ic_traffic_light
+                );
+
+            case "Road Crack":
+                return BitmapDescriptorFactory.fromResource(
+                        R.drawable.ic_roadcrack
+                );
+
+            case "Damaged Road Sign":
+                return BitmapDescriptorFactory.fromResource(
+                        R.drawable.ic_damagedsign
+                );
+
+            default:
+                return BitmapDescriptorFactory.defaultMarker(
+                        BitmapDescriptorFactory.HUE_RED
+                );
+        }
     }
 }
