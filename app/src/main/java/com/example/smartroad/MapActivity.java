@@ -146,7 +146,7 @@ public class MapActivity extends AppCompatActivity
 
                     LatLng pos = new LatLng(lat, lng);
                     Marker marker = mMap.addMarker(new MarkerOptions()
-                            .position(report.location)
+                            .position(pos)
                             .title(report.hazardType)
                             .snippet(report.description)
                             .icon(getHazardIcon(report.hazardType))
