@@ -33,9 +33,10 @@ import com.google.firebase.database.ValueEventListener;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
-
 import com.google.android.gms.maps.model.BitmapDescriptor;
-import com.google.android.gms.maps.model.BitmapDescriptorFactory;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+
 
 public class MapActivity extends AppCompatActivity
         implements OnMapReadyCallback, GoogleMap.OnMarkerClickListener {
@@ -190,48 +191,48 @@ public class MapActivity extends AppCompatActivity
         builder.show();
     }
 
+    private BitmapDescriptor resizeIcon(int image) {
+
+        Bitmap bitmap = BitmapFactory.decodeResource(
+                getResources(),
+                image
+        );
+
+        Bitmap smallBitmap = Bitmap.createScaledBitmap(
+                bitmap,
+                60,  // width
+                60,  // height
+                false
+        );
+
+        return BitmapDescriptorFactory.fromBitmap(smallBitmap);
+    }
+
+
     private BitmapDescriptor getHazardIcon(String hazardType) {
 
         switch (hazardType) {
 
             case "Pothole":
-                return BitmapDescriptorFactory.fromResource(
-                        R.drawable.ic_pothole
-                );
-
+                return resizeIcon(R.drawable.ic_pothole);
 
             case "Flood":
-                return BitmapDescriptorFactory.fromResource(
-                        R.drawable.ic_flood
-                );
-
+                return resizeIcon(R.drawable.ic_flood);
 
             case "Fallen Tree":
-                return BitmapDescriptorFactory.fromResource(
-                        R.drawable.ic_tree
-                );
-
+                return resizeIcon(R.drawable.ic_tree);
 
             case "Traffic Accident":
-                return BitmapDescriptorFactory.fromResource(
-                        R.drawable.ic_accident
-                );
-
+                return resizeIcon(R.drawable.ic_accident);
 
             case "Damaged Traffic Light":
-                return BitmapDescriptorFactory.fromResource(
-                        R.drawable.ic_traffic_light
-                );
+                return resizeIcon(R.drawable.ic_traffic_light);
 
             case "Road Crack":
-                return BitmapDescriptorFactory.fromResource(
-                        R.drawable.ic_roadcrack
-                );
+                return resizeIcon(R.drawable.ic_roadcrack);
 
             case "Damaged Road Sign":
-                return BitmapDescriptorFactory.fromResource(
-                        R.drawable.ic_damagedsign
-                );
+                return resizeIcon(R.drawable.ic_damagedsign);
 
             default:
                 return BitmapDescriptorFactory.defaultMarker(
