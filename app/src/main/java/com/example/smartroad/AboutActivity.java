@@ -36,7 +36,7 @@ public class AboutActivity extends AppCompatActivity {
 
         btnGithub.setOnClickListener(v -> {
             // Replace with your actual GitHub URL
-            String githubUrl = "https://github.com/ainbahrudin61/Smart-Road-3.0";
+            String githubUrl = "https://github.com/ainbahrudin61/Smart-Road-V4.git";
             Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(githubUrl));
             startActivity(intent);
         });
